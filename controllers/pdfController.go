@@ -106,10 +106,20 @@ func GetDocumentById(c *gin.Context){
 }
 
 func DeleteDocument(c *gin.Context){
+	id := c.Param("id")
 	var document models.PDF
 
-	if err := initializers.DB.Unscoped().Find(&document).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error deleting document"})
-        return
+	// Check if the document exists
+	if err := initializers.DB.Where("id = ?", id).First(&document).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Document not found"})
+		return
 	}
+
+	// Delete the document
+	if err := initializers.DB.Delete(&document).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error deleting document"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Document deleted successfully"})
 }
